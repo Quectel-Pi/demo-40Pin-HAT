@@ -1,0 +1,81 @@
+#!/bin/bash
+#
+# Environment Sensor HAT（SKU 20471）× Quectel Pi M2（RK3576） 一键脚本
+# 用法: sudo ./M2_Environment-Sensor-HAT.sh [--no-build]（离线依赖先在根目录跑一次 sudo ./install_deps.sh）
+# 本 HAT 走 I2C：例程用 BME280 当探针自动探测总线（实测能命中），没有板型参数；
+# 如自动识别失败，可加 HAT_I2C_BUS=n 手动指定。详见 Environment-Sensor-HAT/README_M2.md
+#
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/../_common.sh"
+
+HAT_DIR="$WS_ROOT/Environment-Sensor-HAT"
+SDK_DIR="$HAT_DIR/QPi_Environment_Sensor_HAT_SDK"
+C_DIR="$SDK_DIR/c"
+PY_DIR="$SDK_DIR/python"
+PREBUILT_DIR="$SDK_DIR/prebuilt"
+
+ws_parse_args "$@"
+ws_require_root
+
+ws_header "Quectel Pi M2（RK3576）" "Environment Sensor HAT"
+
+# ---------------------------------------------------------------- 1/4
+echo
+echo "==> [1/4] 检查离线依赖包 (.deb)"
+ws_check_debs
+
+# ---------------------------------------------------------------- 2/4
+echo
+echo "==> [2/4] 校验工具链与 Python 依赖"
+ws_check_toolchain
+ws_check_python3
+ws_ensure_smbus2
+
+# ---------------------------------------------------------------- 3/4
+echo
+echo "==> [3/4] 识别 HAT 所在的 I2C 总线"
+
+ws_check_board "rk3576" "Quectel Pi M2（RK3576）"
+
+# M2/RK 板：Pin3/Pin5 是 SoC 硬件 I2C（实测 i2c-3），开机即在，无需 40Pin 使能步骤
+echo "    （M2/RK 板无需 40Pin 使能；其它 Quectel 板才需要 40Pin-ctrl common_i2c enable）"
+
+HAT_BUS=""
+if [ "$PY_OK" = "0" ]; then
+    echo "    跳过（需要 python3 + smbus2）"
+    echo "    不影响 C 例程：它自己会探测总线，运行时会把结果打印出来"
+else
+    HAT_TEST_LOG="$(mktemp)"
+    HAT_BUS="$(HAT_PY_DIR="$PY_DIR" python3 -c '
+import os, sys
+sys.path.insert(0, os.environ["HAT_PY_DIR"])
+from hat_bus import BUS
+print(BUS)
+' 2>"$HAT_TEST_LOG")"
+
+    if [ -n "$HAT_BUS" ]; then
+        echo "    识别结果: /dev/i2c-$HAT_BUS"
+    else
+        echo "    未能自动识别到 HAT！"
+        echo "    检测时的报错信息："
+        sed 's/^/      /' "$HAT_TEST_LOG"
+        echo "    现有 I2C 设备: $(ls /dev/i2c-* 2>/dev/null | tr '\n' ' ')"
+        echo "    请确认排针插紧、HAT 已上电后重试，"
+        echo "    也可以手动指定总线运行，例如: HAT_I2C_BUS=3 sudo $C_DIR/main"
+    fi
+    rm -f "$HAT_TEST_LOG"
+fi
+
+# ---------------------------------------------------------------- 4/4
+echo
+echo "==> [4/4] 准备 C 例程可执行文件"
+
+if ws_prepare_main "$C_DIR" "$PREBUILT_DIR"; then
+    ws_selfcheck_envsensor "$C_DIR"
+else
+    echo "    没有可用的 C 例程（prebuilt/ 里也没有 $(uname -m) 版本）"
+fi
+
+ws_run_hint "$C_DIR" "$PY_DIR"
