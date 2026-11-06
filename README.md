@@ -8,12 +8,12 @@
 
 ## 1. 支持的开发板
 
-| 板 | 平台 | 系统 | 板上编译器 | 备注 |
-|---|---|---|---|---|
-| Quectel Pi L1 | QCM2290（Qualcomm Scuba） | QTI Linux（Yocto 类，**非 Debian**） | 无，且装不上（没有 dpkg/apt） | 40Pin 使能用 `40Pin-ctrl`；C 例程走 `prebuilt/` 静态二进制 |
-| Quectel Pi M1 | SM6115（Qualcomm BENGAL） | QTI Linux（Yocto 类，**非 Debian**） | 无，且装不上（没有 dpkg/apt） | C 例程走 `prebuilt/` 静态二进制；smbus2 已预装 |
-| Quectel Pi H1 | QCS6490 | Debian 13 (trixie) | 有（gcc / make） | 40Pin 使能用 `qpi-config` |
-| Quectel Pi M2 | RK3576 | Debian 13（GNOME 桌面） | 有（gcc / make） | 无需 40Pin 使能步骤 |
+| 板 | 平台 | 系统 |
+|---|---|---|
+| Quectel Pi L1 | QCM2290（Qualcomm Scuba） | Linux/Debian/Android |
+| Quectel Pi M1 | SM6115（Qualcomm BENGAL） | Linux/Debian/Android |
+| Quectel Pi H1 | QCS6490 | Linux/Debian/Android |
+| Quectel Pi M2 | RK3576 | Linux/Debian/Android |
 
 ## 2. 支持的 HAT
 
