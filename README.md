@@ -1,4 +1,4 @@
-# a.Waveshare —— Waveshare HAT × Quectel Pi 适配总览
+# demo-40Pin-HAT —— Waveshare HAT × Quectel Pi 适配总览
 
 > 本目录汇总 Waveshare 外设 HAT 在 Quectel Pi 系列开发板（L1 / M1 / H1 / M2）上的适配：
 > SDK 源码保持统一，离线依赖与一键脚本共用。
@@ -24,13 +24,6 @@
 
 > **新增 HAT 时**：在「支持的 HAT」表与该表下方的「各板适配状态」表末尾各追加一行，并按第 6 节的约定补齐目录、脚本与逐板文档（位置已预留）。
 
-各板适配状态：
-
-| HAT | L1 | M1 | H1 | M2 |
-|---|---|---|---|---|
-| 2.23inch OLED HAT | 实测通过 | 实测通过 | 实测通过 | 实测通过 |
-| Environment Sensor HAT | 实测通过 | 实测通过 | 未实测 | 实测通过 |
-
 ## 3. 硬件连接（40Pin）总览
 
 | HAT | 直扣 40Pin 卡座 | 说明 |
@@ -48,12 +41,12 @@
 
 ## 4. 快速使用
 
-**第一步：把整个 `a.Waveshare` 目录拷到开发板**（至少要包含所选 HAT 目录（含其中一键脚本与 `QPi_*_SDK/`）、共用的 `packages/` 以及根目录的 `install_deps.sh` / `_common.sh`）。
+**第一步：把整个 `demo-40Pin-HAT` 目录拷到开发板**（至少要包含所选 HAT 目录（含其中一键脚本与 `QPi_*_SDK/`）、共用的 `packages/` 以及根目录的 `install_deps.sh` / `_common.sh`）。
 
 **第二步：安装一次离线依赖（HAT 共用，装过可跳过）：**
 
 ```bash
-cd <a.Waveshare 所在目录>
+cd <demo-40Pin-HAT 所在目录>
 chmod +x install_deps.sh    # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./install_deps.sh
 ```
@@ -88,7 +81,7 @@ sudo ./L1_2.23inch-OLED-HAT.sh
 ## 5. 目录结构
 
 ```
-a.Waveshare/
+demo-40Pin-HAT/
 ├── README.md                         本文件：总览与新增 HAT 约定
 ├── install_deps.sh                   离线依赖安装脚本（HAT 共用，装一次即可）
 ├── _common.sh                        一键脚本共用函数库（无需单独执行）
