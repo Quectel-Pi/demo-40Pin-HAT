@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# a.Waveshare 离线依赖安装脚本（HAT 共用，装一次即可）
+# Waveshare 离线依赖安装脚本（HAT 共用，装一次即可）
 # 用法: sudo ./install_deps.sh
 #
 # 说明：

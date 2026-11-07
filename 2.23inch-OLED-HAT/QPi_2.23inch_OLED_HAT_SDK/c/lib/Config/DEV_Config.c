@@ -378,7 +378,7 @@ void I2C_Write_Byte(uint8_t value, uint8_t Cmd)
 function:	解析 DC/RST 引脚
 parameter:
 Info:		优先级：环境变量 OLED_DC_GPIO / OLED_RST_GPIO > 编译期默认值。
-			板型差异（各板的引脚号、gpiochip label）由 a.Waveshare 根目录的
+			板型差异（各板的引脚号、gpiochip label）由 Waveshare 根目录的
 			一键脚本 <板>_2.23inch-OLED-HAT.sh 以环境变量下发，源码不再内置板型预设。
 ******************************************************************************/
 static void DEV_ResolvePins(void)

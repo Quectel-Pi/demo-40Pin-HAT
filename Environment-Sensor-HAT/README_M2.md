@@ -11,7 +11,7 @@
 ## 1. 目录结构
 
 ```
-a.Waveshare/
+Waveshare/
 ├── _common.sh                          一键脚本共用函数库（无需单独执行）
 ├── install_deps.sh                    离线依赖安装脚本（HAT 共用，装一次即可）
 ├── packages/                           45 个 arm64 离线 deb 依赖（HAT 共用）
@@ -29,6 +29,8 @@ a.Waveshare/
 ```
 
 ## 2. 硬件连接（40Pin 接线）
+
+> **安全提示**：接线或更换外设前请先断开开发板电源（拔掉 USB/电源），接好后再上电，避免带电插拔损坏外设或主板。
 
 ### HAT 只用 Pin 3 / Pin 5 这一组 I2C
 
@@ -50,13 +52,10 @@ a.Waveshare/
 
 ## 3. 快速使用
 
-**本板无需 40Pin 使能步骤。** RK 板 Pin3/Pin5 直连 SoC 硬件 I2C 控制器（`rk3x-i2c`，实测为 `i2c-3`），
-开机即在——「先 `40Pin-ctrl common_i2c enable`」那一步是 Qualcomm 系列板才需要的。
-
-在 a.Waveshare 根目录先装一次离线依赖（HAT 共用，装过可跳过）：
+在 Waveshare 根目录先装一次离线依赖（HAT 共用，装过可跳过）：
 
 ```bash
-cd <a.Waveshare 所在目录>
+cd <Waveshare 所在目录>
 chmod +x install_deps.sh    # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./install_deps.sh
 ```
@@ -64,7 +63,7 @@ sudo ./install_deps.sh
 再执行本板一键脚本（先 `cd` 到 `Environment-Sensor-HAT/`；脚本只检查依赖，不再安装）：
 
 ```bash
-cd <a.Waveshare 所在目录>/Environment-Sensor-HAT
+cd <Waveshare 所在目录>/Environment-Sensor-HAT
 chmod +x M2_Environment-Sensor-HAT.sh    # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./M2_Environment-Sensor-HAT.sh
 ```
@@ -99,7 +98,7 @@ sudo python3 Environment-Sensor-HAT/QPi_Environment_Sensor_HAT_SDK/python/test.p
 | 系统 | Debian 13，GNOME 桌面 |
 | glibc / Python | 2.41 / 3.13.5 |
 | 板上编译器 | 无（首次跑一次 `install_deps.sh` 装 gcc/make） |
-| HAT 所在总线 | **i2c-3**（Pin3/Pin5 直连 SoC 硬件 I2C，开机即在，无需使能） |
+| HAT 所在总线 | **i2c-3**（Pin3/Pin5 直连 SoC 硬件 I2C，开机即在） |
 | 气压 / 温度 / 湿度 | 1010.8 hPa / 35.9 ℃ / 31.6 % |
 | Lux / UVS | 184 / 0 |
 | SGP40 原始值 | 29614 |
@@ -153,7 +152,7 @@ sudo HAT_I2C_BUS=3 Environment-Sensor-HAT/QPi_Environment_Sensor_HAT_SDK/c/main 
 
 ## 7. 离线依赖包与预编译二进制
 
-离线依赖已**统一放在 a.Waveshare/packages/**（45 个 arm64 deb，HAT 共用），
+离线依赖已**统一放在 Waveshare/packages/**（45 个 arm64 deb，HAT 共用），
 由根目录的 **install_deps.sh** 用 `dpkg -i` 安装（先检测、已装好的自动跳过；缺的跑两遍，第二遍补齐第一遍因依赖顺序失败的包）；各板一键脚本只检查、不再安装。
 
 45 个包分三类：

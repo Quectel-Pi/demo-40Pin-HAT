@@ -39,16 +39,6 @@ echo "==> [3/4] 识别 HAT 所在的 I2C 总线"
 
 ws_check_board "bengal" "Quectel Pi M1（SM6115）"
 
-# Quectel 系列板的 40Pin 公共 I2C 由 i2c-gpio 模拟，未使能时 i2c-1 根本不存在
-if command -v 40Pin-ctrl >/dev/null 2>&1; then
-    I2C_STATE="$(40Pin-ctrl common_i2c status 2>/dev/null)"
-    if [ "$I2C_STATE" != "enabled" ]; then
-        echo "    注意: 本板 40Pin 的公共 I2C 当前是 '$I2C_STATE'，Pin3/Pin5 对应的 i2c-1 不会出现。"
-        echo "          请先执行: sudo 40Pin-ctrl common_i2c enable"
-        echo
-    fi
-fi
-
 HAT_BUS=""
 if [ "$PY_OK" = "0" ]; then
     echo "    跳过（需要 python3 + smbus2）"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Environment Sensor HAT（SKU 20471）× Quectel Pi M2（RK3576） 一键脚本
 # 用法: sudo ./M2_Environment-Sensor-HAT.sh [--no-build]（离线依赖先在根目录跑一次 sudo ./install_deps.sh）
@@ -38,9 +38,6 @@ echo
 echo "==> [3/4] 识别 HAT 所在的 I2C 总线"
 
 ws_check_board "rk3576" "Quectel Pi M2（RK3576）"
-
-# M2/RK 板：Pin3/Pin5 是 SoC 硬件 I2C（实测 i2c-3），开机即在，无需 40Pin 使能步骤
-echo "    （M2/RK 板无需 40Pin 使能；其它 Quectel 板才需要 40Pin-ctrl common_i2c enable）"
 
 HAT_BUS=""
 if [ "$PY_OK" = "0" ]; then

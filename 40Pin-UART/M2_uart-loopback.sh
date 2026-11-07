@@ -38,7 +38,9 @@ die() {
     exit 2
 }
 
-WORKDIR=$(mktemp -d /tmp/40pin-uart-loop.XXXXXX) || die "cannot create temporary directory"
+TMP_BASE=${TMPDIR:-/tmp}
+[ -d "$TMP_BASE" ] || TMP_BASE=$PWD
+WORKDIR=$(mktemp -d "$TMP_BASE/40pin-uart-loop.XXXXXX") || die "cannot create temporary directory"
 cleanup() {
     rm -rf "$WORKDIR"
 }

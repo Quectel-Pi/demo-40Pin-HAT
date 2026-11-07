@@ -5,7 +5,7 @@
 Uses /dev/spidevX.Y plus GPIO control, so spidev / gpiozero / smbus / PIL are not
 required. GPIO 默认走 /sys/class/gpio；内核未开 CONFIG_GPIO_SYSFS 的板
 （如 Quectel H1 / QCS6490）自动改用 GPIO 字符设备 /dev/gpiochipN + ioctl。
-板型参数（引脚号、gpiochip、片选）由 a.Waveshare 根目录的一键脚本经环境变量
+板型参数（引脚号、gpiochip、片选）由 Waveshare 根目录的一键脚本经环境变量
 OLED_DC_GPIO / OLED_RST_GPIO / OLED_GPIO_CHIP / OLED_SPI_CS 下发，源码不含板型预设。
 说明与排错见 2.23inch-OLED-HAT/README_<板>.md（L1 / M1 / H1 / M2）。
 """

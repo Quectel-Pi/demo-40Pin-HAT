@@ -35,8 +35,10 @@ pwm_test()
     case "$capture_line" in
     ''|*[!0-9]*) die "invalid capture line: $capture_line" ;;
     esac
-    tmp_file=$(mktemp /tmp/pwm-test.XXXXXX) || die "cannot create temporary file"
-    tmp_raw=$(mktemp /tmp/pwm-test-raw.XXXXXX) || die "cannot create temporary file"
+    TMP_BASE=${TMPDIR:-/tmp}
+    [ -d "$TMP_BASE" ] || TMP_BASE=$PWD
+    tmp_file=$(mktemp "$TMP_BASE/pwm-test.XXXXXX") || die "cannot create temporary file"
+    tmp_raw=$(mktemp "$TMP_BASE/pwm-test-raw.XXXXXX") || die "cannot create temporary file"
 
     require_command gpiomon
     require_command timeout

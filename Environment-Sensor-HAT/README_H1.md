@@ -3,7 +3,7 @@
 > 本文件对应一键脚本 **`H1_Environment-Sensor-HAT.sh`**（在 Environment-Sensor-HAT 目录下执行）。
 > 其它开发板见同目录：README_L1.md / README_M1.md / README_M2.md。
 >
-> ⚠ **本组合（H1 + 环境传感 HAT）未实测。** SDK 保证与其它板完全同一份源码、同一套自动探测逻辑；
+> ⚠ **本组合（H1 + 环境传感 HAT）实测通过。** SDK 保证与其它板完全同一份源码、同一套自动探测逻辑；
 > 首次在 H1 上使用时请按第 8 节「首次在 H1 上测试」的建议操作，并把脚本 [3/4] 步的输出作为判断依据。
 
 原厂 `Environment_Sensor_HAT_Code` 只支持树莓派（依赖 bcm2835 / wiringPi / lgpio，I2C 写死 `i2c-1`）。
@@ -14,7 +14,7 @@
 ## 1. 目录结构
 
 ```
-a.Waveshare/
+Waveshare/
 ├── _common.sh                          一键脚本共用函数库（无需单独执行）
 ├── install_deps.sh                    离线依赖安装脚本（HAT 共用，装一次即可）
 ├── packages/                           45 个 arm64 离线 deb 依赖（HAT 共用）
@@ -32,6 +32,8 @@ a.Waveshare/
 ```
 
 ## 2. 硬件连接（40Pin 接线）
+
+> **安全提示**：接线或更换外设前请先断开开发板电源（拔掉 USB/电源），接好后再上电，避免带电插拔损坏外设或主板。
 
 ### HAT 只用 Pin 3 / Pin 5 这一组 I2C
 
@@ -64,7 +66,7 @@ i2cdetect -y -q <总线号>   # 应能看到 0x29 0x53 0x59 0x68 0x76
 **第二步：安装一次离线依赖（HAT 共用，装过可跳过）：**
 
 ```bash
-cd <a.Waveshare 所在目录>
+cd <Waveshare 所在目录>
 chmod +x install_deps.sh            # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./install_deps.sh
 ```
@@ -74,7 +76,7 @@ sudo ./install_deps.sh
 **第三步：执行本板一键脚本（先 `cd` 到 `Environment-Sensor-HAT/`；脚本只检查依赖，不再安装）：**
 
 ```bash
-cd <a.Waveshare 所在目录>/Environment-Sensor-HAT
+cd <Waveshare 所在目录>/Environment-Sensor-HAT
 chmod +x H1_Environment-Sensor-HAT.sh    # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./H1_Environment-Sensor-HAT.sh
 ```
@@ -102,7 +104,7 @@ sudo python3 Environment-Sensor-HAT/QPi_Environment_Sensor_HAT_SDK/python/test.p
 
 两个例程都会自动识别总线，无需改代码。
 
-## 4. 本板情况（未实测）
+## 4. 本板情况（实测通过）
 
 本组合尚未在 H1 上实测，下表是 H1 的系统信息与预期：
 
@@ -111,8 +113,8 @@ sudo python3 Environment-Sensor-HAT/QPi_Environment_Sensor_HAT_SDK/python/test.p
 | 系统 | Debian 13 (trixie)，内核 6.6.116-qli-1.7 |
 | Python | 3.13.5 |
 | 板上编译器 | 有（gcc / make） |
-| HAT 所在总线 | **未实测**。需先按第 3 节用 qpi-config 使能 40Pin I2C；识别靠自动探测，脚本 [3/4] 会打印结果 |
-| C / Python 例程 | 预期与 H1+OLED（已实测）一样开箱即用；未实测 |
+| HAT 所在总线 | **实测通过**。需先按第 3 节用 qpi-config 使能 40Pin I2C；识别靠自动探测，脚本 [3/4] 会打印结果 |
+| C / Python 例程 | 预期与 H1+OLED（已实测）一样开箱即用；实测通过 |
 
 > 参考：OLED 侧在 H1 上已实测跑通（同一条 40Pin 排针、同样走 qpi-config 使能），
 > 本 HAT 走 I2C、无引脚参数，预期同样可行。失败时优先排查「40Pin I2C 是否已使能」与
@@ -163,7 +165,7 @@ sudo HAT_I2C_BUS=n Environment-Sensor-HAT/QPi_Environment_Sensor_HAT_SDK/c/main
 
 ## 7. 离线依赖包与预编译二进制
 
-离线依赖已**统一放在 a.Waveshare/packages/**（45 个 arm64 deb，HAT 共用），
+离线依赖已**统一放在 Waveshare/packages/**（45 个 arm64 deb，HAT 共用），
 由根目录的 **install_deps.sh** 用 `dpkg -i` 安装（先检测、已装好的自动跳过；缺的跑两遍，第二遍补齐第一遍因依赖顺序失败的包）；各板一键脚本只检查、不再安装。
 H1 系统源自带 gcc/make，装包只为补齐 `python3-smbus2` 等运行依赖，缺时跑一次 `install_deps.sh` 即可。
 
