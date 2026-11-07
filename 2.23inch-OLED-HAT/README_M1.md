@@ -17,7 +17,7 @@ Python 例程纯标准库、开箱即用（见第 7、8 节）。
 ## 1. 目录结构
 
 ```
-a.Waveshare/
+Waveshare/
 ├── _common.sh                          一键脚本共用函数库（无需单独执行）
 ├── install_deps.sh                    离线依赖安装脚本（HAT 共用，装一次即可）
 ├── packages/                           45 个 arm64 离线 deb 依赖（HAT 共用）
@@ -42,6 +42,8 @@ a.Waveshare/
 ```
 
 ## 2. 硬件连接（40Pin 接线）
+
+> **安全提示**：接线或更换外设前请先断开开发板电源（拔掉 USB/电源），接好后再上电，避免带电插拔损坏外设或主板。
 
 > **连接方式**：本板（M1）不能直接扣在 40Pin 卡座上使用，只能通过杜邦线把 HAT 板上的引脚与 40Pin 对应连接；原因待硬件排查中。
 
@@ -78,7 +80,7 @@ sudo 40Pin-ctrl test spi        # Qualcomm 系列板（厂商 40Pin 工具）
 **第二步：安装一次离线依赖（HAT 共用，装过可跳过）：**
 
 ```bash
-cd <a.Waveshare 所在目录>
+cd <Waveshare 所在目录>
 chmod +x install_deps.sh            # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./install_deps.sh
 ```
@@ -88,7 +90,7 @@ sudo ./install_deps.sh
 **第三步：执行本板一键脚本（先 `cd` 到 `2.23inch-OLED-HAT/`；脚本只检查依赖，不再安装）：**
 
 ```bash
-cd <a.Waveshare 所在目录>/2.23inch-OLED-HAT
+cd <Waveshare 所在目录>/2.23inch-OLED-HAT
 chmod +x M1_2.23inch-OLED-HAT.sh    # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./M1_2.23inch-OLED-HAT.sh
 ```
@@ -201,7 +203,7 @@ SPI 优先选 CS0 节点、没有则 CS1；GPIO 有 `/sys/class/gpio` 走 sysfs�
 
 ## 7. 离线依赖包与预编译二进制
 
-离线依赖已**统一放在 a.Waveshare/packages/**（45 个 arm64 deb，HAT 共用），
+离线依赖已**统一放在 Waveshare/packages/**（45 个 arm64 deb，HAT 共用），
 由根目录的 **install_deps.sh** 用 `dpkg -i` 安装（先检测、已装好的自动跳过；缺的跑两遍）。**本板没有 dpkg，该脚本会自动整段跳过、绝不强行安装**
 ——这类系统的 glibc 比 Debian 13 低，混装会破坏系统（见第 8 节）。
 

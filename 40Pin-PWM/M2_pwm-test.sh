@@ -36,7 +36,9 @@ pwm_test()
     esac
     capture_chip=gpiochip$((capture_gpio / 32))
     capture_line=$((capture_gpio % 32))
-    tmp_file=$(mktemp /tmp/pwm-test.XXXXXX) || die "cannot create temporary file"
+    TMP_BASE=${TMPDIR:-/tmp}
+    [ -d "$TMP_BASE" ] || TMP_BASE=$PWD
+    tmp_file=$(mktemp "$TMP_BASE/pwm-test.XXXXXX") || die "cannot create temporary file"
 
     require_command gpiomon
     require_command timeout

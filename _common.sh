@@ -1,17 +1,22 @@
 #!/bin/bash
 #
-# a.Waveshare 公共函数库 —— 由各 HAT 目录下 <板>_<外设>.sh 一键脚本 source，不单独执行。
+# Waveshare 公共函数库 —— 由各 HAT 目录下 <板>_<外设>.sh 一键脚本 source，不单独执行。
 #
 # 设计约定：
 #   * 板型差异（DC/RST 引脚号、gpiochip label、片选等）只存在于各一键脚本里，
 #     通过环境变量下发给 SDK 例程；SDK 源码（c/、python/）保持统一，不含板型预设；
-#   * 离线依赖包统一放在 a.Waveshare/packages/（HAT 共用），由根目录 install_deps.sh
+#   * 离线依赖包统一放在 Waveshare/packages/（HAT 共用），由根目录 install_deps.sh
 #     单独安装；各板脚本只检查依赖是否已装好，不执行安装；
 #   * 用法: sudo ./<板>_<外设>.sh [--no-build]
 #
 set -u
 
-WS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 兼容 bash 与安卓 mksh：mksh 没有 BASH_SOURCE，改用调用脚本路径的上级目录
+if [ -n "${BASH_SOURCE:-}" ]; then
+    WS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+    WS_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
 PKG_DIR="$WS_ROOT/packages"
 
 DO_BUILD=1
@@ -21,7 +26,7 @@ PY_OK=0
 ws_usage() {
     echo "用法: sudo $0 [--no-build]"
     echo "  --no-build  跳过 C 例程编译"
-    echo "  提示: 离线依赖需先在 a.Waveshare 根目录执行一次 sudo ./install_deps.sh"
+    [ -f "$WS_ROOT/install_deps.sh" ] && echo "  提示: 离线依赖需先在 Waveshare 根目录执行一次 sudo ./install_deps.sh"
 }
 
 ws_parse_args() {
@@ -57,7 +62,7 @@ ws_check_board() {   # $1=关键字（可用 | 分隔多个）  $2=板型说明
     [ -r /proc/device-tree/compatible ] && name="$name $(tr '\0' ' ' < /proc/device-tree/compatible 2>/dev/null)"
     name="$(echo "$name" | tr 'A-Z' 'a-z')"
 
-    if [ -z "${name// /}" ]; then
+    if [ -z "$(echo "$name" | tr -d ' ')" ]; then
         echo "    跳过板型提示（读不到 /proc/device-tree）"
     elif echo "$name" | grep -Eq "$1"; then
         echo "    当前板型: $2"
@@ -106,6 +111,10 @@ ws_deb_installed() {
 
 # 只检查 packages/ 里的 deb 是否已装好，不执行安装；安装统一由根目录 install_deps.sh 负责
 ws_check_debs() {
+    if [ ! -d "$PKG_DIR" ]; then
+        echo "    未包含离线依赖包（$PKG_DIR 不存在），跳过检查"
+        return
+    fi
     if ! command -v dpkg >/dev/null 2>&1; then
         echo "    本系统没有 dpkg，跳过检查（依赖装不上；C 例程走 prebuilt/ 兜底）"
         return
@@ -143,8 +152,10 @@ ws_check_toolchain() {   # 结束后 CAN_BUILD=0/1
         return
     fi
 
-    if command -v dpkg >/dev/null 2>&1; then
+    if command -v dpkg >/dev/null 2>&1 && [ -f "$WS_ROOT/install_deps.sh" ]; then
         echo "    缺少:$missing —— 请先执行一次 sudo $WS_ROOT/install_deps.sh 安装依赖"
+    elif command -v dpkg >/dev/null 2>&1; then
+        echo "    缺少:$missing"
     else
         echo "    缺少:$missing（本系统没有 dpkg，装不上）"
     fi
@@ -167,8 +178,10 @@ ws_ensure_smbus2() {     # 环境传感 HAT 专用：只检查 smbus2 是否可�
         echo "    python3-smbus2: 已就绪"
         return 0
     fi
-    if command -v dpkg >/dev/null 2>&1; then
+    if command -v dpkg >/dev/null 2>&1 && [ -f "$WS_ROOT/install_deps.sh" ]; then
         echo "    python3-smbus2 不可用 → 可先执行一次 sudo $WS_ROOT/install_deps.sh 安装；C 例程不受影响"
+    elif command -v dpkg >/dev/null 2>&1; then
+        echo "    python3-smbus2 不可用 → Python 例程无法运行；C 例程不受影响"
     else
         echo "    python3-smbus2 不可用 → Python 例程无法运行（本系统没有 dpkg，装不上）；C 例程不受影响"
     fi
@@ -184,7 +197,7 @@ ws_prepare_main() {
 
     if [ "$DO_BUILD" != "1" ]; then
         echo "    已通过 --no-build 跳过编译"
-    elif [ "$CAN_BUILD" = "1" ]; then
+    elif [ "$CAN_BUILD" = "1" ] && [ -f "$c_dir/Makefile" ]; then
         # 开发板时钟可能落后于 PC，会让 make 报“修改时间在未来”，先统一时间戳
         find "$c_dir" -exec touch {} + 2>/dev/null
 
@@ -197,7 +210,8 @@ ws_prepare_main() {
     fi
 
     if [ ! -x "$c_dir/main" ] && [ -f "$prebuilt_dir/main_${arch}_static" ]; then
-        # 没有编译工具链（或编译失败）时的兜底：用 prebuilt/ 里预编译好的静态二进制
+        # 没有源码/工具链（或编译失败）时的兜底：用 prebuilt/ 里预编译好的静态二进制
+        mkdir -p "$c_dir"
         cp -f "$prebuilt_dir/main_${arch}_static" "$c_dir/main"
         chmod +x "$c_dir/main"
         echo "    改用预编译二进制: $c_dir/main   （prebuilt/main_${arch}_static）"

@@ -33,7 +33,7 @@
 /* 两个控制脚的编号：
  *   sysfs 板（有 /sys/class/gpio）是 Linux 全局 GPIO 号；
  *   chardev 板（内核未开 CONFIG_GPIO_SYSFS，如 H1/QCS6490）是 gpiochip 内的线号。
- * 板型差异由 a.Waveshare 根目录的一键脚本 <板>_2.23inch-OLED-HAT.sh 经环境变量
+ * 板型差异由 Waveshare 根目录的一键脚本 <板>_2.23inch-OLED-HAT.sh 经环境变量
  * OLED_DC_GPIO / OLED_RST_GPIO / OLED_GPIO_CHIP 下发；下面的默认值只在直接运行
  * 且未设环境变量时兜底（M2/RK3576 的值）。详见 2.23inch-OLED-HAT/README_<板>.md */
 #ifndef OLED_DC_DEFAULT

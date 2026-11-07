@@ -11,7 +11,7 @@
 ## 1. 目录结构
 
 ```
-a.Waveshare/
+Waveshare/
 ├── _common.sh                          一键脚本共用函数库（无需单独执行）
 ├── install_deps.sh                    离线依赖安装脚本（HAT 共用，装一次即可）
 ├── packages/                           45 个 arm64 离线 deb 依赖（HAT 共用）
@@ -30,6 +30,8 @@ a.Waveshare/
 
 ## 2. 硬件连接（40Pin 接线）
 
+> **安全提示**：接线或更换外设前请先断开开发板电源（拔掉 USB/电源），接好后再上电，避免带电插拔损坏外设或主板。
+
 ### HAT 只用 Pin 3 / Pin 5 这一组 I2C
 
 原理图（`Environment_Sensor_HAT_SCH.pdf`）里 40Pin 连接器 P1 的引脚表上，与 I2C 有关的是这两组：
@@ -43,36 +45,23 @@ a.Waveshare/
 > **Pin 27 / Pin 28** 这组 I2C 也可以把 HAT 板与 40Pin 用杜邦线对应连接后使用。
 
 所以直接扣板时，**Pin 27 / 28 对应的那条 I2C 扫不到任何 HAT 器件是正常的**。
-L1 上 Pin 3 / 5 这条总线是 GPIO 软件模拟的（adapter 名 `soc:common_i2c`，编号 `i2c-1`），
-**必须先 `sudo 40Pin-ctrl common_i2c enable` 才会出现**（详见第 3 节）。
 
 例程靠「0x76 上的 BME280」来认总线，所以只会命中真正接着 HAT 的那条，不会误判到 Pin 27/28 那条。
 
 ## 3. 快速使用
 
-**第一步：确认 40Pin 的 I2C 已使能。**
-
-L1 的 40Pin 公共 I2C 是 GPIO 软件模拟的（adapter 名 `soc:common_i2c`），**未使能时
-Pin3(SDA1) / Pin5(SCL1) 对应的 `i2c-1` 不会出现**，例程自然找不到 HAT：
+**第一步：安装一次离线依赖（HAT 共用，装过可跳过）：**
 
 ```bash
-sudo 40Pin-ctrl common_i2c enable    # 使能；状态会持久化，重启后由 40Pin-ctrl --boot 恢复
-40Pin-ctrl common_i2c status         # 查看状态：enabled / disabled
-ls /dev/i2c-*                        # 使能后才会出现 i2c-1
-```
-
-**第二步：安装一次离线依赖（HAT 共用，装过可跳过）：**
-
-```bash
-cd <a.Waveshare 所在目录>
+cd <Waveshare 所在目录>
 chmod +x install_deps.sh            # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./install_deps.sh
 ```
 
-**第三步：执行本板一键脚本（先 `cd` 到 `Environment-Sensor-HAT/`；脚本只检查依赖，不再安装）：**
+**第二步：执行本板一键脚本（先 `cd` 到 `Environment-Sensor-HAT/`；脚本只检查依赖，不再安装）：**
 
 ```bash
-cd <a.Waveshare 所在目录>/Environment-Sensor-HAT
+cd <Waveshare 所在目录>/Environment-Sensor-HAT
 chmod +x L1_Environment-Sensor-HAT.sh    # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./L1_Environment-Sensor-HAT.sh
 ```
@@ -107,7 +96,7 @@ sudo python3 Environment-Sensor-HAT/QPi_Environment_Sensor_HAT_SDK/python/test.p
 | 系统 | Debian 13 (trixie) arm64，`multi-user.target` 无桌面 |
 | glibc / Python | 2.41 / 3.13.5 |
 | 板上编译器 | 无（首次跑一次 `install_deps.sh` 装 gcc/make） |
-| HAT 所在总线 | **i2c-1**（40Pin Pin3/Pin5，软件 I2C，需先 40Pin-ctrl 使能） |
+| HAT 所在总线 | **i2c-1**（40Pin Pin3/Pin5，软件 I2C） |
 | 气压 / 温度 / 湿度 | 1010.5 hPa / 35.4 ℃ / 29.5 % |
 | Lux / UVS | 196 / 1 |
 | SGP40 原始值 | 29902 |
@@ -161,7 +150,7 @@ sudo HAT_I2C_BUS=1 Environment-Sensor-HAT/QPi_Environment_Sensor_HAT_SDK/c/main 
 
 ## 7. 离线依赖包与预编译二进制
 
-离线依赖已**统一放在 a.Waveshare/packages/**（45 个 arm64 deb，HAT 共用），
+离线依赖已**统一放在 Waveshare/packages/**（45 个 arm64 deb，HAT 共用），
 由根目录的 **install_deps.sh** 用 `dpkg -i` 安装（先检测、已装好的自动跳过；缺的跑两遍，第二遍补齐第一遍因依赖顺序失败的包）；各板一键脚本只检查、不再安装。
 
 45 个包分三类：

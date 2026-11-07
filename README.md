@@ -1,4 +1,4 @@
-# a.Waveshare —— Waveshare HAT × Quectel Pi 适配总览
+# demo-40Pin-HAT —— Waveshare HAT × Quectel Pi 适配总览
 
 > 本目录汇总 Waveshare 外设 HAT 在 Quectel Pi 系列开发板（L1 / M1 / H1 / M2）上的适配：
 > SDK 源码保持统一，离线依赖与一键脚本共用。
@@ -8,12 +8,12 @@
 
 ## 1. 支持的开发板
 
-| 板 | 平台 | 系统 | 板上编译器 | 备注 |
-|---|---|---|---|---|
-| Quectel Pi L1 | QCM2290（Qualcomm Scuba） | QTI Linux（Yocto 类，**非 Debian**） | 无，且装不上（没有 dpkg/apt） | 40Pin 使能用 `40Pin-ctrl`；C 例程走 `prebuilt/` 静态二进制 |
-| Quectel Pi M1 | SM6115（Qualcomm BENGAL） | QTI Linux（Yocto 类，**非 Debian**） | 无，且装不上（没有 dpkg/apt） | C 例程走 `prebuilt/` 静态二进制；smbus2 已预装 |
-| Quectel Pi H1 | QCS6490 | Debian 13 (trixie) | 有（gcc / make） | 40Pin 使能用 `qpi-config` |
-| Quectel Pi M2 | RK3576 | Debian 13（GNOME 桌面） | 有（gcc / make） | 无需 40Pin 使能步骤 |
+| 板 | 平台 | 系统 |
+|---|---|---|
+| Quectel Pi L1 | QCM2290（Qualcomm Scuba） | Linux/Debian/Android |
+| Quectel Pi M1 | SM6115（Qualcomm BENGAL） | Linux/Debian/Android |
+| Quectel Pi H1 | QCS6490 | Linux/Debian/Android |
+| Quectel Pi M2 | RK3576 | Linux/Debian/Android |
 
 ## 2. 支持的 HAT
 
@@ -24,14 +24,9 @@
 
 > **新增 HAT 时**：在「支持的 HAT」表与该表下方的「各板适配状态」表末尾各追加一行，并按第 6 节的约定补齐目录、脚本与逐板文档（位置已预留）。
 
-各板适配状态：
-
-| HAT | L1 | M1 | H1 | M2 |
-|---|---|---|---|---|
-| 2.23inch OLED HAT | 实测通过 | 实测通过 | 实测通过 | 实测通过 |
-| Environment Sensor HAT | 实测通过 | 实测通过 | 未实测 | 实测通过 |
-
 ## 3. 硬件连接（40Pin）总览
+
+> **安全提示**：接线或更换外设前请先断开开发板电源（拔掉 USB/电源），接好后再上电，避免带电插拔损坏外设或主板。
 
 | HAT | 直扣 40Pin 卡座 | 说明 |
 |---|---|---|
@@ -48,12 +43,12 @@
 
 ## 4. 快速使用
 
-**第一步：把整个 `a.Waveshare` 目录拷到开发板**（至少要包含所选 HAT 目录（含其中一键脚本与 `QPi_*_SDK/`）、共用的 `packages/` 以及根目录的 `install_deps.sh` / `_common.sh`）。
+**第一步：把整个 `demo-40Pin-HAT` 目录拷到开发板**（至少要包含所选 HAT 目录（含其中一键脚本与 `QPi_*_SDK/`）、共用的 `packages/` 以及根目录的 `install_deps.sh` / `_common.sh`）。
 
 **第二步：安装一次离线依赖（HAT 共用，装过可跳过）：**
 
 ```bash
-cd <a.Waveshare 所在目录>
+cd <demo-40Pin-HAT 所在目录>
 chmod +x install_deps.sh    # 从 Windows 拷过去可能丢可执行位，务必先执行
 sudo ./install_deps.sh
 ```
@@ -67,6 +62,7 @@ sudo ./L1_2.23inch-OLED-HAT.sh
 ```
 
 > QTI Linux（M1 / L1）默认就是 root shell、没有 `sudo`，直接执行 `./<板>_<HAT>.sh` 即可。
+> **Android 系统**：请用 `sh <板>_<HAT>.sh` 执行（Android 自带的是 mksh，没有 bash），并确保以 root 身份运行（如 `adb root`）。
 
 一键脚本依次做四件事：
 
@@ -88,7 +84,7 @@ sudo ./L1_2.23inch-OLED-HAT.sh
 ## 5. 目录结构
 
 ```
-a.Waveshare/
+demo-40Pin-HAT/
 ├── README.md                         本文件：总览与新增 HAT 约定
 ├── install_deps.sh                   离线依赖安装脚本（HAT 共用，装一次即可）
 ├── _common.sh                        一键脚本共用函数库（无需单独执行）
@@ -106,7 +102,7 @@ a.Waveshare/
 └── <后续新增的 HAT 目录放在这一层>    ← 见第 6 节
 ```
 
-## 6. 新增一个 HAT（预留位置）
+## 6. 新增 HAT（预留位置）
 
 后续新增 HAT 时，按以下约定加入，本项目其余内容无需改动：
 
