@@ -18,6 +18,7 @@ Waveshare/
 ├── _common.sh                          一键脚本共用函数库（无需单独执行）
 ├── install_deps.sh                    离线依赖安装脚本（HAT 共用，装一次即可）
 ├── packages/                           45 个 arm64 离线 deb 依赖（HAT 共用）
+├── tools/                              原厂附带工具（flash_download_tool.zip / Image2Lcd2.9.zip / Zimo221.7z）
 ├── 2.23inch-OLED-HAT/
 │   ├── M2_2.23inch-OLED-HAT.sh         ← 本板一键脚本（M2 的差异只在这里）
 │   ├── L1_2.23inch-OLED-HAT.sh / M1_2.23inch-OLED-HAT.sh / H1_2.23inch-OLED-HAT.sh
@@ -33,8 +34,7 @@ Waveshare/
 │   │       ├── stats.py                原厂系统信息例程（需要 PIL，见第 6 节）
 │   │       └── drive/{config.py,SSD1305.py,hat_hw.py,fonts.py}
 │   ├── 2.23inch-OLED-HAT-Code.7z       原厂源码压缩包，未做任何改动，仅作参考
-│   ├── *.pdf                           用户手册 / 原理图 / SSD1305 datasheet
-│   └── flash_download_tool.zip 等      原厂附带工具
+│   └── *.pdf                           用户手册 / 原理图 / SSD1305 datasheet
 └── Environment-Sensor-HAT/             另一块 HAT（结构与本目录类似）
 ```
 
