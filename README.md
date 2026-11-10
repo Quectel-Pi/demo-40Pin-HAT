@@ -20,7 +20,55 @@
 > **Android 系统**：脚本已按 mksh 和 `/data/local/tmp` 环境适配，必须用 `sh <脚本>` 执行
 > （Android 自带 mksh，没有 bash），并以 root 身份运行（如先执行 `adb root`）。
 
-## 2. 支持的 HAT
+## 2. 支持的外设与 HAT
+
+### 2.1 外设适配总览（实物图）
+
+#### 🖥️ 显示与交互类 HAT
+
+| 外设 | 实物图 | 使用 40Pin 接口 | 适配情况 | 存在问题 | 购买链接 | 适配场景 |
+|---|---|---|---|---|---|---|
+| GPIO terminal expansion board | <img src="docs/images/gpio-terminal-expansion-board.png" width="120"> | GPIO | 已适配 | | [GPIO 端子扩展板](https://developer.quectel.com/wp-content/uploads/2025/11/SMP0104-%E6%A0%91%E8%8E%93%E6%B4%BEGPIO%E7%AB%AF%E5%AD%90%E6%89%A9%E5%B1%95%E6%9D%BF-%E9%BB%91%E8%89%B2%E7%8E%AF%E4%BF%9D.pdf) | |
+| 2.23 寸 OLED 扩展板 | <img src="docs/images/2.23inch-oled-hat.png" width="120"> | SPI | 已适配 | 杜邦线连对应引脚可以，直接扣在 40Pin 上存在问题 | [购买链接](https://www.waveshare.net/shop/2.23inch-OLED-HAT.htm) | |
+| 三联屏彩屏扩展板 | <img src="docs/images/oled-lcd-hat-a.png" width="120"> | SPI / I2C | 已适配 | | [购买链接](https://www.waveshare.net/shop/OLED-LCD-HAT-A.htm) | 支持清晰、鲜艳的图像显示，适用于各种应用场景 |
+
+#### 🌡️ 传感器与环境感知类 HAT
+
+| 外设 | 实物图 | 使用 40Pin 接口 | 适配情况 | 存在问题 | 购买链接 | 适配场景 |
+|---|---|---|---|---|---|---|
+| 环境传感器扩展板 | <img src="docs/images/environment-sensor-hat.png" width="120"> | I2C | 已适配 | | [购买链接](https://www.waveshare.net/shop/Environment-Sensor-HAT.htm) | 可见光感应，环境感应，运动姿态感应，红紫外感应，气体感应 |
+
+#### 🤖 电机与机器人控制类 HAT
+
+| 外设 | 实物图 | 使用 40Pin 接口 | 适配情况 | 存在问题 | 购买链接 | 适配场景 |
+|---|---|---|---|---|---|---|
+| CPU cooling fan | <img src="docs/images/cpu-cooling-fan.png" width="120"> | PWM | 已适配 | | [Raspberry Pi 5 Official Active Cooler](https://item.taobao.com/item.htm?id=1060075638198&amp;mi_id=0000p30p9EbZLZc_STjz_b8WglyjAjh5SUr28KdB0HuAIb0&amp;skuId=6270052682832&amp;spm=tbpc.boughtlist.suborder_itemtitle.1.62172e8dHIKOeb) | 可用于 CPU 散热 |
+| 16 路 PWM 舵机驱动板模块 | <img src="docs/images/servo-driver-hat.png" width="120"> | I2C | 已适配 | | [购买链接](https://www.waveshare.net/shop/Servo-Driver-HAT.htm) | 可控制 16 路舵机，每路 12 位分辨率，适合用于机械臂或六足等机器人舵机驱动 |
+| MG90S 舵机 | <img src="docs/images/mg90s-servo.png" width="120"> | PWM | 已适配 | | [购买链接](https://www.waveshare.net/shop/MG90S-Servo.htm) | |
+
+#### 📡 通信与网络连接类 HAT
+
+| 外设 | 实物图 | 使用 40Pin 接口 | 适配情况 | 存在问题 | 购买链接 | 适配场景 |
+|---|---|---|---|---|---|---|
+| PCIe 转 5G/4G/3G 扩展板套件 | <img src="docs/images/pcie-5g-hat.png" width="120"> | 板上 PCIe + 40Pin GPIO | 已适配 | | [购买链接](https://www.waveshare.net/shop/RM520N-GL-5G-HAT-Plus.htm) | PCIe 协议，支持 5G 高速上网 |
+| PCIe 转千兆以太网和 USB 3.2 Gen1 扩展卡 | <img src="docs/images/pcie-gbe-usb3-hat.png" width="120"> | | 已适配 | | [购买链接](https://www.waveshare.net/shop/PCIe-TO-MiniPCIe-GbE-USB3.2-HAT-Plus.htm) | PCIe 转 MiniPCIe 4G、千兆以太网和 USB 3.2 Gen1 |
+| PCIe 转 M.2 转接板 | <img src="docs/images/pcie-m2-hat.png" width="120"> | | 已适配 | | [购买链接](https://www.waveshare.net/shop/PCIe-TO-M.2-HAT-Plus.htm) | NVMe 协议 M.2 接口硬盘，高速读写 |
+| GPS 模块 | <img src="docs/images/lc29h-gps-rtk-hat.png" width="120"> | | 已适配 | | [购买链接](https://www.waveshare.net/shop/LC29H-AA-GPS-HAT.htm) | **弥补 Pi M2 没有 GNSS 的短板**：RTK 厘米级高精度定位，板载 40Pin GPIO 接口，支持并发接收多卫星系统、多频主动干扰消除、AGNSS |
+
+#### 🎵 音频处理类 HAT
+
+> 不建议适配：QPi 系列开发板目前均有音频内置 Codec。
+
+#### 🔧 拓展接口类 HAT
+
+| 外设 | 实物图 | 使用 40Pin 接口 | 适配情况 | 存在问题 | 购买链接 | 适配场景 |
+|---|---|---|---|---|---|---|
+| 以太网 USB 集线器扩展板（USB HUB） | <img src="docs/images/eth-usb-hub-hat.png" width="120"> | | 已适配 | | [购买链接](https://www.waveshare.net/shop/ETH-USB-HUB-HAT.htm) | **丰富 QPi 的以太网和 USB 接口**：RJ45 网口 × 1，USB 2.0 接口 × 3 |
+| SN65HVD230 CAN 通信模块 | <img src="docs/images/sn65hvd230-can-board.png" width="120"> | CAN（仅 M2） | 已适配 | | [购买链接](https://www.waveshare.net/shop/SN65HVD230-CAN-Board.htm) | CAN 总线发送接收器，引脚兼容 PCA82C250，3.3V 供电，带 ESD 保护 |
+| RS485 UART 转 485 模块（3.3V 电平 / 5V 电平） | <img src="docs/images/rs485-board.png" width="120"> | UART | 已适配 | | [购买链接](https://www.waveshare.net/shop/RS485-Board-3.3V.htm) | 基于 3.3V 或 5V 系统的 RS485 通信，支持多种通信总线接口 |
+| RS232 转串口 UART TTL 模块 | <img src="docs/images/rs232-board.png" width="120"> | UART | 已适配 | | [购买链接](https://www.waveshare.net/shop/RS232-Board.htm) | RS232 发送接收器，带 ESD 保护，支持流控制 |
+
+### 2.2 HAT 适配状态
 
 | HAT | 总线 | 适配 SDK | 一键脚本 | 详细文档 |
 |---|---|---|---|---|
@@ -285,6 +333,7 @@ cd /root/demo-40Pin-HAT
 ```
 demo-40Pin-HAT/
 ├── README.md                          本文件：总览与新 HAT 约定
+├── docs/images/                       外设实物图（2.1 节表格使用）
 ├── install_deps.sh                    离线依赖安装脚本（HAT 共用，装一次即可）
 ├── _common.sh                         一键脚本共用函数库（HAT 脚本 source，无需单独执行）
 ├── packages/                          45 个 arm64 离线 deb 依赖（HAT 共用）
