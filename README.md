@@ -38,7 +38,7 @@
 
 | 实物图 | 外设 | 接口 | 说明 |
 |---|---|---|---|
-| <img src="docs/images/environment-sensor-hat.png" width="160"> | [环境传感器扩展板](https://www.waveshare.net/shop/Environment-Sensor-HAT.htm) | I2C | 可见光感应、环境感应、运动姿态感应、红紫外感应、气体感应 |
+| <img src="docs/images/environment-sensor-hat.png" width="160"> | [环境传感器扩展板](https://www.waveshare.net/shop/Environment-Sensor-HAT.htm) | I2C | 可见光感应、环境感应、运动姿态感应、<br>红紫外感应、气体感应 |
 
 #### 🤖 电机与机器人控制类 HAT
 
