@@ -1,16 +1,17 @@
 # 40Pin-CAN：SN65HVD230 CAN Board × Quectel Pi M2
 
-本目录提供 Waveshare SN65HVD230 CAN Board 在 Quectel Pi M2（RK3576）上的接线说明与单板回环测试脚本；
-原厂资料与 LPC1768 / STM32 示例代码不随仓库发布。
+本目录提供 Waveshare SN65HVD230 CAN Board 在 Quectel Pi M2（RK3576）上的接线说明、单板回环测试脚本与 cantool 收发工具。
 
 ## 1. 目录内容
 
-| 文件 | 说明 |
+| 文件/目录 | 说明 |
 |---|---|
-| `M2_can-loopback.sh` | M2 单板 CAN 回环测试脚本 |
-| `README_M2.md` | 本文件：接线、双板测试与排错 |
+| `M2_can-loopback.sh` | M2 单板 CAN 回环测试脚本（默认控制器回环，`silent` 静默回环） |
+| `cantool.c` | 最小 SocketCAN 收发工具源码，Android 无 can-utils 时兜底 |
+| `prebuilt/cantool` | `cantool.c` 的 aarch64 静态二进制，推到 `/data/local/tmp/cantool` 使用 |
+| `README_M2.md` | 本文件：接线、测试方式与排错 |
 
-> 原厂原理图、数据手册与示例代码压缩包不随仓库发布。
+> SN65HVD230 收发器板原理图、数据手册与 LPC1768 / STM32 示例代码不随仓库发布，需要时请到原厂资料中获取。
 
 ## 2. 硬件说明
 
@@ -168,10 +169,12 @@ sudo ./M2_can-loopback.sh          # 控制器回环
 sudo ./M2_can-loopback.sh silent   # 静默回环，不依赖对端 ACK
 ```
 
-Android 上运行：
+Android 上运行（没有 can-utils 时把 `prebuilt/cantool` 推到 `/data/local/tmp`）：
 
 ```sh
 adb push M2_can-loopback.sh /data/local/tmp/
+adb push prebuilt/cantool /data/local/tmp/cantool
+adb shell chmod +x /data/local/tmp/cantool
 adb shell
 su
 sh /data/local/tmp/M2_can-loopback.sh          # 控制器回环
@@ -217,10 +220,10 @@ sh /data/local/tmp/M2_can-loopback.sh silent   # 静默回环
 | 断电只量到 120Ω，不是 60Ω | 另一端收发器未供电或未接 | 检查另一端 P1-3 3V3、P1-4 GND |
 | `No buffer space available` | `txqueuelen` 仍是 10 | `ip link set can0 txqueuelen 1000` |
 | FD 帧出现重复帧或尾部补零 | `##` 后的标志位写成 0，被当成经典帧 | FD 帧必须写 `##1` |
-| Android 提示 `candump: inaccessible or not found` | 镜像没有 can-utils | 使用本目录脚本（需先有 `/data/local/tmp/cantool`），或把静态 can-utils 推到 `/data/local/tmp` |
+| Android 提示 `candump: inaccessible or not found` | 镜像没有 can-utils | 把 `prebuilt/cantool` 推到 `/data/local/tmp/cantool` 后运行脚本 |
 
 ## 8. 参考
 
-- [M2_can-loopback.sh](M2_can-loopback.sh)：本目录回环测试脚本
-- `SN65HVD230-CAN-Board-Schematic.pdf` / `SN65HVD230-CAN-Board_Datasheets.pdf`：收发器板原理图与数据手册
+- [M2_can-loopback.sh](M2_can-loopback.sh)：本目录单板回环测试脚本
+- `cantool.c` / `prebuilt/cantool`：最小 SocketCAN 收发工具，Android 无 can-utils 时使用
 - [Quectel_Pi_40Pin测试](https://quectel.feishu.cn/wiki/RQT0wumwyiwyFvkJnxTc74ysnxe)

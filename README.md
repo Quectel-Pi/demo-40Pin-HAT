@@ -99,7 +99,7 @@
 | `40Pin-GPIO/` | `<板>_pin_control.sh`：对 40Pin 上 28 个 GPIO 引脚做 `up` / `down` / `get`，支持 `pinN` 或 `all` | L1 / M1 / H1 / M2 | libgpiod v2（`gpioset` / `gpioget`） | 无需外部接线；已被 I2C / UART / SPI / PWM 占用的引脚会报 `Device or resource busy` |
 | `40Pin-PWM/` | `<板>_pwm-test.sh`：Pin33 输出 1 kHz / 50% PWM，另一 GPIO 捕获边沿，判定 900–1100 Hz、40–60% 占空比 | L1 / M1 / M2（H1 暂无） | libgpiod v2（`gpiomon`）、`timeout`、`awk`、`sed` | Pin33 → Pin31（默认）；也可改 Pin29 |
 | `40Pin-UART/` | `<板>_uart-loopback.sh`：Pin8 TXD 与 Pin10 RXD 短接，逐档波特率回环比对 32 字节图案 | L1 / M1 / H1 / M2 | `stty`、`dd`、`cmp`、`od`、`timeout` | Pin8 ↔ Pin10 短接；7 档波特率（9600～1500000）全部 PASS 才算通过 |
-| `40Pin-CAN/` | `M2_can-loopback.sh`：can0 控制器回环 / 静默回环，发送 5 帧并比对 `rx_packets` 增量 | M2 | `ip`、can-utils（`candump` / `cansend`）或 `/data/local/tmp/cantool` | 单板 + 一块 SN65HVD230 即可；脚本输出 `RESULT: PASS / FAIL` |
+| `40Pin-CAN/` | `M2_can-loopback.sh`：can0 单板回环（默认控制器回环，`silent` 静默回环），发 5 帧 `0x333` 后按 `rx_packets` 增量判定；双板对接按 README 手工执行 | M2 | `ip`、can-utils（`candump` / `cansend`）或 `/data/local/tmp/cantool`（仓库带 `prebuilt/cantool`） | 1 块 M2 + 1 块 SN65HVD230 即可跑回环（双板对接需 2 块）；输出 `RESULT: PASS / FAIL` |
 
 > 这几组测试脚本直接操作内核设备节点，需要以 root 运行；`packages/` 中**不含** libgpiod，
 > 板上需已具备 libgpiod v2 的 `gpioset` / `gpioget` / `gpiomon`。
@@ -210,10 +210,11 @@ sh /data/local/tmp/M2_rs485-test.sh
 > RO 必须经 1k/2k 分压后再接 Pin10。该测试是单向链路，不验证半双工方向切换。
 > 接线或换线前先断开开发板电源。
 
-### 3.6 CAN 单板回环（M2）
+### 3.6 CAN 回环与双板对接（M2）
 
-M2 的 40Pin 引出一路 CAN FD（can0，Pin16 TX / Pin18 RX），配一块 3.3V 的
-SN65HVD230 CAN Board 即可做单板回环；双板总线收发与完整排错见 `40Pin-CAN/README_M2.md`。
+M2 的 40Pin 引出一路 CAN FD（can0，Pin16 TX / Pin18 RX）。单板回环只需要 1 块 M2 + 1 个 3.3V
+SN65HVD230 CAN Board；双板对接需要 2 块 M2 + 2 个收发器，CANH/CANL 对接并共地。
+完整说明和排错见 `40Pin-CAN/README_M2.md`。
 
 | 收发器 P1 | M2 40Pin | 说明 |
 |---|---|---|
@@ -225,15 +226,29 @@ SN65HVD230 CAN Board 即可做单板回环；双板总线收发与完整排错�
 ```bash
 qpi-config can0 enable && reboot     # Linux 镜像首次使用，重启后出现 can0
 cd 40Pin-CAN
-sudo ./M2_can-loopback.sh            # 控制器回环
-sudo ./M2_can-loopback.sh silent     # 静默回环，不依赖对端 ACK
+
+# 单板回环：控制器回环（默认）/ 静默回环
+sudo ./M2_can-loopback.sh
+sudo ./M2_can-loopback.sh silent
 ```
 
+双板对接时两块板都按普通模式配置，B 板先监听、A 板再发帧：
+
+```bash
+# B 板
+candump -t d can0
+
+# A 板
+for i in 1 2 3 4 5; do cansend can0 123#1122334455667788; sleep 0.1; done
+```
+
+> 回环脚本退出时会自动把 can0 恢复为普通双板模式（`loopback off`）。
+> 两块板必须共地；两个节点时两端各一个 120Ω，总线约 60Ω。
 > `rk3576_canfd` 必须同时给 `bitrate` 和 `dbitrate` 并 `fd on`，只配 `bitrate` 时
 > `ip link set can0 up` 会报 `Invalid argument`（内核日志 `incorrect/missing data bit-timing`）。
 > SN65HVD230 为经典 CAN 收发器，最高 1 Mbps，数据段不要超过 1 Mbps。
 > Pin18 与 2.23inch OLED HAT 的 DC 冲突，两者不能同时使用。
-> Android 镜像没有 can-utils，脚本会回退使用 `/data/local/tmp/cantool`。
+> Android 镜像没有 can-utils，脚本会回退使用 `/data/local/tmp/cantool`（可推送 `40Pin-CAN/prebuilt/cantool`）。
 
 ## 4. HAT 硬件连接（40Pin）总览
 
@@ -367,8 +382,10 @@ demo-40Pin-HAT/
 │   ├── <板>_uart-loopback.sh          L1 / M1 / H1 / M2
 │   └── M2_rs485-test.sh               仅 M2
 └── 40Pin-CAN/
-    ├── M2_can-loopback.sh             仅 M2 单板 CAN 回环
-    └── README_M2.md                   接线、双板测试与排错
+    ├── M2_can-loopback.sh             仅 M2 单板 CAN 回环（normal 默认 / silent）
+    ├── cantool.c                      SocketCAN 收发工具源码（双板对接兜底）
+    ├── prebuilt/cantool               aarch64 静态二进制，推到 /data/local/tmp 使用
+    └── README_M2.md                   接线、回环与双板测试、排错
 ```
 
 ## 7. 新增 HAT 约定

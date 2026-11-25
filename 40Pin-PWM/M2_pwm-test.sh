@@ -39,6 +39,7 @@ pwm_test()
     TMP_BASE=${TMPDIR:-/tmp}
     [ -d "$TMP_BASE" ] || TMP_BASE=$PWD
     tmp_file=$(mktemp "$TMP_BASE/pwm-test.XXXXXX") || die "cannot create temporary file"
+    tmp_raw=$(mktemp "$TMP_BASE/pwm-test-raw.XXXXXX") || die "cannot create temporary file"
 
     require_command gpiomon
     require_command timeout
@@ -60,7 +61,7 @@ pwm_test()
         if [ -e "$pwm/enable" ] && [ "$(cat "$pwm/enable" 2>/dev/null)" = 1 ]; then
             echo 0 > "$pwm/enable" 2>/dev/null || true
         fi
-        rm -f "$tmp_file"
+        rm -f "$tmp_file" "$tmp_raw"
     }
     pwm_exit()
     {
@@ -90,8 +91,21 @@ pwm_test()
         echo "Connect Pin 33 (PWM, GPIO2_D3) to GPIO$capture_gpio."
     fi
     echo "Output: 1000 Hz, 50% duty cycle"
-    timeout 5 gpiomon -c "$capture_chip" -n 21 \
-        "$capture_line" > "$tmp_file" 2>&1 &
+
+    # libgpiod v1 and v2 use different chip argument and output formats.
+    gpiomon_major=$(gpiomon --version 2>/dev/null | head -1 | \
+        awk '{print $NF}' | tr -d 'v' | cut -d. -f1)
+    case "$gpiomon_major" in
+    ''|*[!0-9]*) die "cannot determine gpiomon version" ;;
+    esac
+
+    if [ "$gpiomon_major" -ge 2 ]; then
+        timeout 5 gpiomon -c "$capture_chip" -n 21 \
+            "$capture_line" > "$tmp_file" 2>&1 &
+    else
+        timeout 5 gpiomon -n 21 -F '%s.%n %e' \
+            "$capture_chip" "$capture_line" > "$tmp_raw" 2>&1 &
+    fi
     monitor_pid=$!
     sleep 1
     echo 1 > "$pwm/enable" 2>/dev/null || die "cannot enable pwm0"
@@ -100,8 +114,12 @@ pwm_test()
     echo 0 > "$pwm/enable" 2>/dev/null || true
 
     if [ "$monitor_status" -ne 0 ]; then
-        cat "$tmp_file" >&2 2>/dev/null
+        cat "$tmp_raw" "$tmp_file" >&2 2>/dev/null
         die "no valid PWM edges captured on GPIO$capture_gpio"
+    fi
+
+    if [ "$gpiomon_major" -lt 2 ]; then
+        sed -e 's/ 1$/ rising/' -e 's/ 0$/ falling/' "$tmp_raw" > "$tmp_file"
     fi
 
     awk -v capture_gpio="$capture_gpio" '

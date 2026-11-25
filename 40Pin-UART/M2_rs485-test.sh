@@ -45,6 +45,7 @@ GPIO_NUM=78
 CASE_DETAIL=
 RSE_PID=
 WORKDIR=
+GPIOD_MAJOR=
 
 usage() {
     cat <<EOF
@@ -76,7 +77,7 @@ usage() {
     - 5V 模块做 RX 时，RO 必须经 1k/2k 分压再接 M2 RXD，否则 5V 会损坏引脚。
     - 本测试是单向链路，不验证半双工方向切换和总线冲突；反向测试需交换
       TX/RX 模块（5V 模块做 RX 时加分压）。
-    - 需要 root 和 libgpiod v2 的 gpioset。
+    - 需要 root 和 libgpiod（v1.6+ 或 v2）的 gpioset。
     - GPIO 全局号换算: gpiochip = GPIO / 32，line = GPIO % 32；
       默认 GPIO$GPIO_NUM -> $GPIO_CHIP line$GPIO_LINE。
 EOF
@@ -95,22 +96,30 @@ rse_stop() {
     fi
 }
 
-# 保持 RSE 电平：gpioset v2 默认持有 line，进程被 kill 后释放
+# 保持 RSE 电平：v2 默认持有 line；v1 用 -m signal 持有，进程被 kill 后释放
 rse_hold() {
     rse_stop
-    gpioset -c "$GPIO_CHIP" "$GPIO_LINE=$1" &
+    if [ "$GPIOD_MAJOR" -ge 2 ]; then
+        gpioset -c "$GPIO_CHIP" "$GPIO_LINE=$1" &
+    else
+        gpioset -m signal "$GPIO_CHIP" "$GPIO_LINE=$1" &
+    fi
     RSE_PID=$!
     sleep 0.1
     if ! kill -0 "$RSE_PID" 2>/dev/null; then
         RSE_PID=
         die "无法控制 $GPIO_CHIP line$GPIO_LINE 作为 RSE。
-       请确认已安装 libgpiod v2（gpioset 支持 -c），且该 GPIO 未被其他程序占用。"
+       请确认已安装 libgpiod（v1.6+ 或 v2），且该 GPIO 未被其他程序占用。"
     fi
 }
 
 cleanup() {
     rse_stop
-    gpioset -c "$GPIO_CHIP" -t 0 "$GPIO_LINE=0" >/dev/null 2>&1 || true
+    if [ "${GPIOD_MAJOR:-2}" -ge 2 ]; then
+        gpioset -c "$GPIO_CHIP" -t 0 "$GPIO_LINE=0" >/dev/null 2>&1 || true
+    else
+        gpioset "$GPIO_CHIP" "$GPIO_LINE=0" >/dev/null 2>&1 || true
+    fi
     [ -n "$WORKDIR" ] && rm -rf "$WORKDIR"
 }
 trap cleanup EXIT
@@ -162,7 +171,14 @@ command -v dd >/dev/null 2>&1 || die "未找到 dd"
 command -v cmp >/dev/null 2>&1 || die "未找到 cmp"
 command -v od >/dev/null 2>&1 || die "未找到 od"
 command -v timeout >/dev/null 2>&1 || die "未找到 timeout"
-command -v gpioset >/dev/null 2>&1 || die "未找到 gpioset，请安装 libgpiod v2"
+command -v gpioset >/dev/null 2>&1 || die "未找到 gpioset，请安装 libgpiod"
+
+# libgpiod v1 与 v2 的 gpioset 命令行语法不同，按主版本号分别处理
+GPIOD_MAJOR=$(gpioset --version 2>/dev/null | head -1 | \
+    awk '{print $NF}' | tr -d 'v' | cut -d. -f1)
+case "$GPIOD_MAJOR" in
+''|*[!0-9]*) die "无法识别 libgpiod 版本（gpioset --version 输出异常）" ;;
+esac
 
 # 临时目录：优先 $TMPDIR，其次 Android 常用目录，最后当前目录
 TMP=
