@@ -240,8 +240,19 @@ PPS_RESULT="SKIP"
 PPS_DETAIL=""
 if [ "$GGA" -gt 0 ] && [ "$QUALITY" -ge 1 ]; then
     if command -v gpiomon >/dev/null 2>&1; then
-        timeout 3 gpiomon -c "$PPS_CHIP" "$PPS_LINE" > "$PPS" 2> "$PPS_ERR" || true
-        PPS_EDGES=$(grep -c 'rising' "$PPS" 2>/dev/null || true)
+        # libgpiod v1 与 v2 的 gpiomon 芯片参数和输出格式不同
+        gpiomon_major=$(gpiomon --version 2>/dev/null | head -1 | \
+            awk '{print $NF}' | tr -d 'v' | cut -d. -f1)
+        case "$gpiomon_major" in
+        ''|*[!0-9]*) gpiomon_major=2 ;;
+        esac
+        if [ "$gpiomon_major" -ge 2 ]; then
+            timeout 3 gpiomon -c "$PPS_CHIP" "$PPS_LINE" > "$PPS" 2> "$PPS_ERR" || true
+            PPS_EDGES=$(grep -c 'rising' "$PPS" 2>/dev/null || true)
+        else
+            timeout 3 gpiomon -F '%s.%n %e' "$PPS_CHIP" "$PPS_LINE" > "$PPS" 2> "$PPS_ERR" || true
+            PPS_EDGES=$(grep -c ' 1$' "$PPS" 2>/dev/null || true)
+        fi
         [ -n "$PPS_EDGES" ] || PPS_EDGES=0
         if [ "$PPS_EDGES" -ge 2 ]; then
             PPS_RESULT="PASS"
@@ -254,7 +265,7 @@ if [ "$GGA" -gt 0 ] && [ "$QUALITY" -ge 1 ]; then
             PPS_DETAIL="$PPS_EDGES 次上升沿/3 秒"
         fi
     else
-        PPS_DETAIL="未安装 gpiomon（libgpiod v2）"
+        PPS_DETAIL="未安装 gpiomon（libgpiod）"
     fi
 else
     PPS_DETAIL="未定位，跳过"

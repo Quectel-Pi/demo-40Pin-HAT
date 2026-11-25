@@ -1,5 +1,5 @@
 #!/bin/bash
-# M2（RK3576）40Pin GPIO 控制脚本（libgpiod v2）
+# M2（RK3576）40Pin GPIO 控制脚本（兼容 libgpiod v1.6+ / v2）
 #
 # 用法：
 #   ./M2_pin_control.sh <pinN|all> <up|down|get>
@@ -17,7 +17,7 @@
 # I2C3/UART1/SPI1/I2C7，需先用 qpi-config 释放对应功能，否则 gpioset 会报
 # Device or resource busy。
 #
-# gpiod v2 的 gpioset 默认会一直持有 line；加 "-t 0" 表示设置后立即退出。
+# v2 的 gpioset 默认会一直持有 line，需加 "-t 0" 才立即退出；v1 默认 mode=exit。
 
 # pin -> 全局 GPIO 号（由表中的 GPIOx_yz 名称换算）
 PIN_TABLE=(
@@ -40,7 +40,30 @@ require_root()
 
 require_command()
 {
-    command -v "$1" >/dev/null 2>&1 || die "未找到 $1，请确认已安装 libgpiod v2"
+    command -v "$1" >/dev/null 2>&1 || die "未找到 $1，请确认已安装 libgpiod（v1.6+ 或 v2）"
+}
+
+# libgpiod v1 与 v2 的 gpioset/gpioget 命令行语法不同，按主版本号分别处理
+detect_gpiod_major()
+{
+    local major
+    major=$(gpioset --version 2>/dev/null | head -1 | \
+        awk '{print $NF}' | tr -d 'v' | cut -d. -f1)
+    case "$major" in
+    ''|*[!0-9]*) die "无法识别 libgpiod 版本（gpioset --version 输出异常）" ;;
+    esac
+    echo "$major"
+}
+
+# 设置 line 电平：v2 需 -t 0 才会设置后立即退出，v1 默认 mode=exit
+write_line()
+{
+    local chip=$1 line=$2 value=$3
+    if [ "$GPIOD_MAJOR" -ge 2 ]; then
+        gpioset -c "$chip" -t 0 "$line=$value"
+    else
+        gpioset "$chip" "$line=$value"
+    fi
 }
 
 # 根据 pin 号查找 GPIO 全局号
@@ -62,10 +85,22 @@ resolve_gpio()
     line=$((gpio % 32))
 }
 
-# 读取 line 的值（0/1），-a 表示不改变方向
+# 读取 line 的值（0/1）
+# v2 用 -a 保持原配置；v1 读取会把 line 请求为输入，读后按原方向恢复
 read_line()
 {
-    gpioget -a --numeric -c "$1" "$2"
+    local chip=$1 line=$2 dir value
+    if [ "$GPIOD_MAJOR" -ge 2 ]; then
+        gpioget -a --numeric -c "$chip" "$line"
+        return
+    fi
+    dir=$(gpioinfo "$chip" 2>/dev/null | awk -v line="$line" \
+        '$1 == "line" && $2 == line ":" { print $5 }')
+    value=$(gpioget "$chip" "$line") || return 1
+    if [ "$dir" = output ]; then
+        gpioset "$chip" "$line=$value" >/dev/null 2>&1 || true
+    fi
+    printf '%s\n' "$value"
 }
 
 # 设置引脚电平
@@ -74,7 +109,7 @@ set_pin()
     local pin=$1 gpio=$2 chip=$3 line=$4 value=$5 actual
     printf 'pin%d (GPIO%d / %s line%d): ' "$pin" "$gpio" "$chip" "$line"
 
-    if ! gpioset -c "$chip" -t 0 "$line=$value"; then
+    if ! write_line "$chip" "$line" "$value"; then
         echo "✗ 设置失败"
         return 1
     fi
@@ -153,7 +188,11 @@ read_all_pins()
 # 说明 gpioset 的持有行为
 print_hold_note()
 {
-    echo "说明: gpioset 使用 -t 0，设置后立即退出并释放 line，不常驻持有。"
+    if [ "$GPIOD_MAJOR" -ge 2 ]; then
+        echo "说明: gpioset 使用 -t 0，设置后立即退出并释放 line，不常驻持有。"
+    else
+        echo "说明: gpioset 默认设置后立即退出并释放 line，不常驻持有。"
+    fi
 }
 
 # 显示帮助信息
@@ -203,6 +242,9 @@ esac
 require_root
 require_command gpioset
 require_command gpioget
+require_command gpioinfo
+
+GPIOD_MAJOR=$(detect_gpiod_major)
 
 print_hold_note
 
