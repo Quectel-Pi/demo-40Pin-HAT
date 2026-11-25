@@ -13,23 +13,21 @@
 ## 1. 目录结构
 
 ```
-demo-40Pin-HAT/
-├── _common.sh                         一键脚本共用函数库（无需单独执行）
-└── OLED-LCD-HAT/
-    ├── M2_OLED-LCD-HAT.sh             ← 本板一键脚本（M2 的差异只在这里）
-    ├── README_M2.md                   本文件
-    └── QPi_OLED_LCD_HAT_SDK/          ← 适配后的 SDK，交付使用这一个
-        ├── prebuilt/main_aarch64_static   C 例程静态二进制（无 gcc 的板子兜底用）
-        └── c/
-            ├── Makefile
-            ├── examples/                  main.c / OLED_0in96_test.c / LCD_2in_test.c
-            │                              Triple_OLED_LCD.c / KEY_test.c
-            ├── lib/Config/                DEV_Config.c(.h) —— 唯一重写的硬件层
-            ├── lib/{OLED,LCD,GUI,Fonts}/  原厂驱动与字库，未改动
-            └── pic/                       例程用到的 bmp
+OLED-LCD-HAT/
+├── M2_OLED-LCD-HAT.sh                 ← 本板一键脚本（M2 的差异只在这里）
+├── README_M2.md                       本文件
+├── QPi_OLED_LCD_HAT_SDK/              ← 适配后的 SDK，交付使用这一个
+│   ├── prebuilt/main_aarch64_static   C 例程静态二进制（无 gcc 的板子兜底用）
+│   └── c/
+│       ├── Makefile
+│       ├── examples/                  main.c / OLED_0in96_test.c / LCD_2in_test.c
+│       │                              Triple_OLED_LCD.c / KEY_test.c
+│       ├── lib/Config/                DEV_Config.c(.h) —— 唯一重写的硬件层
+│       ├── lib/{OLED,LCD,GUI,Fonts}/  原厂驱动与字库，未改动
+│       └── pic/                       例程用到的 bmp
+├── OLED_LCD_HAT_A_Demo.zip            原厂 Demo 压缩包（未改动，仅作参考）
+└── *.pdf                              原理图 / 0.96 OLED / 2inch LCD 资料
 ```
-
-> 原厂 `OLED_LCD_HAT_A_Demo` 压缩包与原理图 / 屏幕资料不随仓库发布。
 
 ## 2. 硬件连接（40Pin 接线）
 

@@ -6,14 +6,16 @@
 ## 1. 目录结构
 
 ```
-demo-40Pin-HAT/
+Waveshare/
 ├── _common.sh                              一键脚本共用函数库（无需单独执行）
-└── LC29H(XX)-GPS-RTK-HAT/
-    ├── M2_LC29H-GPS-RTK-HAT.sh             ← 本板一键脚本
-    └── README_M2.md                        本文件
+├── LC29H(XX)-GPS-RTK-HAT/
+│   ├── M2_LC29H-GPS-RTK-HAT.sh             ← 本板一键脚本
+│   ├── README_M2.md                        本文件
+│   ├── Lc29h_gps_rtk_hat_code/             原厂例程（C / Python），未做改动
+│   ├── Lc29h_gps_rtk_hat_code.zip          原厂例程压缩包
+│   └── *.pdf                               原理图、协议手册、应用笔记
+└── 40Pin-test/                             推板用的裁剪副本（脚本 + _common.sh + README）
 ```
-
-> 原厂例程（`Lc29h_gps_rtk_hat_code/`）、原理图、协议手册与应用笔记不随仓库发布。
 
 ## 2. 硬件连接（40Pin）
 
@@ -103,7 +105,7 @@ GGA 定位质量：`0` 未定位、`1` GPS 单点、`2` DGPS/SBAS、`4` RTK 固�
 | 抓取结果 | 3 秒 4256 字节 / 74 条语句，校验和异常 0 条 |
 | 定位 | GGA `quality=2`（DGPS/SBAS），36～37 颗星，HDOP 0.58～0.72 |
 | PPS | `gpiochip2` line23（Pin12 / GPIO87），1 Hz，高电平约 100 ms |
-| 依赖 | 仅系统自带 `stty`、`dd`、`awk`（mawk）、`gpiomon`（libgpiod v2），无额外安装 |
+| 依赖 | 仅系统自带 `stty`、`dd`、`awk`（mawk）、`gpiomon`（libgpiod v1/v2），无额外安装 |
 
 ## 5. 板型参数如何下发
 
@@ -142,19 +144,19 @@ LC29H_UART_DEV=/dev/ttyS3 sudo ./M2_LC29H-GPS-RTK-HAT.sh
 | 有数据但全部校验失败 | 模块波特率被改过（默认 115200）；或串口上有其它设备在发数据 |
 | 有 NMEA 但 `quality=0` | 天线没接 / 朝内；把天线放到窗外或室外，冷启动最长约 26 s |
 | `PPS 秒脉冲: FAIL` | 未定位时 PPS 本来就没有输出；已定位仍 FAIL 时检查 Pin12 是否被其它驱动占用 |
-| `PPS 秒脉冲: SKIP` | 系统没有 `gpiomon`（libgpiod v2），或 GPIO line 被占用 |
+| `PPS 秒脉冲: SKIP` | 系统没有 `gpiomon`（libgpiod），或 GPIO line 被占用 |
 | `/dev/ttyS1` 不存在 | 确认镜像的 40Pin UART 已使能；本板 Debian 镜像默认可用 |
 
 ## 8. Android / 推板说明
 
-Android 上没有 bash，请用 `sh` 执行；并且**必须推送整个 `demo-40Pin-HAT` 目录**（脚本要 source 上一层的
+Android 上没有 bash，请用 `sh` 执行；并且**必须推送整个 `40Pin-test` 目录**（脚本要 source 上一层的
 `_common.sh`，只推单个脚本会报错）：
 
 ```bash
-adb push demo-40Pin-HAT /data/local/tmp/
+adb push 40Pin-test /data/local/tmp/
 adb shell
 su
-sh "/data/local/tmp/demo-40Pin-HAT/LC29H(XX)-GPS-RTK-HAT/M2_LC29H-GPS-RTK-HAT.sh"
+sh "/data/local/tmp/40Pin-test/LC29H(XX)-GPS-RTK-HAT/M2_LC29H-GPS-RTK-HAT.sh"
 ```
 
-Linux/Debian 板请把 `demo-40Pin-HAT` 解压到 `/root` 或 `/home/<用户>` 等持久可写目录，不要放在 `/tmp`。
+Linux/Debian 板请把 `40Pin-test` 解压到 `/root` 或 `/home/<用户>` 等持久可写目录，不要放在 `/tmp`。

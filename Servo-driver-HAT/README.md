@@ -2,16 +2,17 @@
 
 基于 NXP PCA9685 的 16 路 12 位 PWM 舵机驱动板，通过 40Pin 的
 I2C-3（Pin3/5）或 I2C-7（Pin27/28）接到 Quectel Pi M2（RK3576）。
-本目录包含控制脚本与使用说明。
+本目录包含控制脚本、数据手册和微雪原厂例程。
 
 ## 1. 目录内容
 
-| 文件 | 说明 |
+| 文件 / 目录 | 说明 |
 |---|---|
 | `M2_pca9685-servo.sh` | M2 控制脚本：交互菜单 + 同步扫动 + 寄存器回读校验 |
-| `README.md` | 本文件：接线、用法与排错 |
-
-> 原厂数据手册与例程不随仓库发布。
+| `PCA96_datasheet.pdf` | NXP PCA9685 数据手册（Rev. 02） |
+| `PCA9685_20141121.pdf` | PCA9685 数据手册旧版，备查 |
+| `Servo_Driver_HAT/` | 微雪原厂例程（Raspberry Pi / Jetson Nano / VisionFive2），仅供参考 |
+| `Servo_Driver_HAT.7z` | 微雪原厂例程压缩包 |
 
 > 仓库总览见上一层 `README.md` 的「PCA9685 16 路舵机驱动板」一节。
 
